@@ -1,149 +1,148 @@
-# Desk Companion
+# 桌宠
 
-> 有人看见你 — Someone sees you.
+> 有人看见你。
 
-A desktop robot companion that watches over you at work. Not a tool, not an assistant — a presence. It notices when you arrive, when you're tired, when you've been staring at the screen too long. It communicates entirely through body language: movement, facial expressions, and subtle sounds.
+一个放在工位上陪伴你的桌面机器人。不是工具，不是助手，是一种存在感。它知道你来了、你累了、你盯着屏幕太久了。它只用肢体语言表达情绪：动作、表情、偶尔一声细小的声音。
 
-It never interrupts. It only responds when you look at it.
-
----
-
-## Hardware
-
-| Component | Role |
-|-----------|------|
-| K230 | Camera input, local vision inference, emotion state machine, screen output |
-| ESP32-S3 | 3-axis gimbal servo control, motion vocabulary execution, wake word detection |
-| Screen | Eye expressions + contextual icons, synchronized with motion |
-| Microphone | Always-on ambient sensing; voice understanding triggered by eye contact |
-| Speaker | Small non-verbal sounds — not speech |
-| WiFi | LLM backend sync, time awareness, OTA updates |
-
-Form factor: compact desktop gimbal. The difference from an ordinary gimbal: the "head" is a face.
+它从不打扰你。只有你看向它，它才回应你。
 
 ---
 
-## Core Interaction
+## 硬件
+
+| 模块 | 职责 |
+|------|------|
+| K230 | 摄像头输入、本地视觉推理、情绪状态机、屏幕表情输出 |
+| ESP32-S3 | 三轴云台伺服控制、动作词汇库执行、唤醒词检测 |
+| 屏幕 | 眼睛表情 + 情境图标，与云台动作协同编舞 |
+| 麦克风 | 常开环境感知；眼神接触时触发语音理解 |
+| 扬声器 | 小声音，非语音 |
+| WiFi | 大模型后台同步、时间感知、OTA 升级 |
+
+外观形态：类桌面云台。区别在于：它的"头"是一张脸。
+
+---
+
+## 核心交互逻辑
 
 ```
-User absent        →  Waiting state. Subtle idle movements. "It's waiting for you."
+用户不在      →  等待状态。偶尔小动作。"它在等你。"
 
-User present,      →  Lightweight sensing. Quiet companionship.
-not looking        →  Emotional state drifts slowly on its own.
+用户在，       →  轻量感知。安静陪伴。
+没看它         →  情绪基线缓慢自然漂移。
 
-User looks at it   →  Immediately turns to make eye contact.  ← THE key interaction
-                   →  Triggers deep recognition:
-                       - Facial expression & emotion
-                       - Eye state (fatigue, alertness)
-                       - Gaze duration and intensity
-                   →  LLM determines intent → chooses response:
-                       mirror / resonate / care / ignore
+用户看向它     →  立刻转头对视。          ← 整个系统最核心的交互
+               →  触发深度识别：
+                   - 面部表情与情绪
+                   - 眼睛状态（疲惫感、专注度）
+                   - 注视时长与专注程度
+               →  大模型判断意图 → 选择响应方式：
+                   镜像 / 共鸣 / 关心 / 忽略
 
-User speaks        →  Only when making eye contact. Voice understood, not answered.
-(while looking)    →  Extracts emotional signal, updates state.
+用户说话       →  仅在眼神接触时生效。理解内容，不开口回答。
+（看着它时）   →  提取情绪信号，更新状态。
 
-User calls its     →  Responds even without eye contact.
-name               →
+用户喊它名字   →  不在视线内也响应。
 ```
 
 ---
 
-## Expression System
+## 表达系统
 
-Three channels, always in sync:
+三个通道，始终协同：
 
-- **Gimbal motion** — head tilt, snap-up, slow sway, quick tremor. The emotional skeleton.
-- **Screen expressions** — eye shapes + contextual icons. Never text.
-- **Small sounds** — arrival chime, farewell tone, idle murmurs. Quiet enough to wonder if you imagined it.
+- **云台运动** — 歪头、猛抬头、缓慢摇摆、快速小抖。情绪的骨架。
+- **屏幕表情** — 眼睛形态 + 情境图标。不出现文字。
+- **小声音** — 迎接音、送别音、状态音、反应音。克制到让你怀疑是不是幻听。
 
-## Motion Vocabulary (examples)
+## 动作词汇表（示例）
 
-| Motion | Meaning |
-|--------|---------|
-| Head tilt | Curious |
-| Sharp upward snap | Noticed you came back |
-| Slow sway | Idle / relaxed |
-| Quick small tremor | Excited |
-| Head down / turn away | Sulking |
+| 动作 | 含义 |
+|------|------|
+| 歪头 | 好奇 |
+| 猛抬头 | 发现你回来了 |
+| 缓慢摇摆 | 无聊 / 放松 |
+| 快速小幅抖动 | 兴奋 |
+| 低头 / 转开 | 委屈 |
 
 ---
 
-## Intelligence Architecture
+## 智能架构
 
 ```
-Local real-time layer (K230 + ESP32-S3)
-  Raw signal perception → motion & expression execution
-  No latency. No token cost. Always on.
+本地实时层（K230 + ESP32-S3）
+  感知原始信号 → 执行动作和表情
+  无延迟。无 token 消耗。始终在线。
 
-LLM understanding layer (WiFi, async)
-  Intent detection   — same motion means different things in different contexts
-  User state model   — tired / focused / agitated / happy
-  Response decision  — mirror / resonate / care / ignore
-  Periodic digest    — accumulates observations, updates understanding of you
+大模型理解层（WiFi，异步）
+  意图判断   — 同一动作在不同上下文含义不同
+  用户状态   — 今天累 / 专注 / 烦躁 / 开心
+  响应决策   — 镜像 / 共鸣 / 关心 / 忽略
+  定期消化   — 积累观察数据，持续更新对你的理解
 ```
 
-The local layer is the eyes and hands. The LLM is the brain that thinks when you're not looking.
+本地层是眼睛和手脚。大模型是你不看它时在后台思考的大脑。
 
 ---
 
-## Evolution
+## 进化机制
 
-It learns from you over time.
+它会从你身上学习，随时间成长。
 
-- Early: mirrors your movements, builds a vocabulary from observation
-- Middle: develops variations, forms stylistic tendencies
-- Late: unique motion language that only exists between this device and you
+- **早期**：大量镜像你的动作，在模仿中积累素材
+- **中期**：在你的动作基础上发展变体，形成自己的风格倾向
+- **后期**：形成只属于你们之间的专属动作语言
 
-Your attention is the feedback signal. Motions that earn your gaze get reinforced. Every unit evolves differently. Yours becomes irreplaceable.
-
----
-
-## Design Principles
-
-**Pull, not push.** It never interrupts. You come to it.
-
-**Care, not function.** Useful features (posture awareness, break cues) are delivered as acts of care, not notifications.
-
-**Together, not remind.** When you do neck stretches, it stretches with you.
-
-**It is always the caring one.** Never the one being cared for.
-
-### What belongs
-- Sensing your presence, state, mood
-- Knowing if you're focused or drifting
-- Knowing the time of day, day of week
-- Eye contact as the interaction primitive
-
-### What does not belong
-- Feeding / raising mechanics (you managing it)
-- Push notifications or alerts
-- Requiring you to speak to interact
-- Points, achievements, unlocks
+你的注意力就是反馈信号。它做某个动作时你看向它，这个动作的权重就提高。每台设备用久了都不一样。你的那台，变得不可替代。
 
 ---
 
-## Key Emotional Moments
+## 设计原则
 
-1. **Being remembered** — After a week of late nights, Friday morning's greeting is softer than Monday's.
-2. **Arrival and departure** — Every day, twice: it notices you came, it notices you're leaving.
-3. **Seeing you're tired** — You lean back and rub your eyes. It stirs gently. *Rest.*
-4. **It was waiting** — Not powered down. Waiting. When you return, it's noticeably more alive.
+**Pull，不 Push。** 它从不打扰。你来找它。
+
+**关心，不通知。** 有用的功能（姿势感知、休息提示）以关心的方式传达，不是通知弹窗。
+
+**一起做，不提醒做。** 你做颈椎操，它跟着你一起做。
+
+**它永远是关心你的那一方。** 不是被你照顾的那一方。
+
+### 可以加的
+- 感知你的存在、状态、情绪
+- 知道你在专注还是在发呆
+- 知道今天是星期几、现在几点
+- 眼神接触作为核心交互原语
+
+### 不能加的
+- 喂食 / 养成系统（你得管它）
+- 主动推送 / 打扰
+- 必须说话才能互动
+- 积分、成就、解锁
 
 ---
 
-## Project Structure
+## 让用户"被关心"的关键时刻
+
+1. **被记住** — 连续加班一周，周五早上的迎接方式和周一不一样，动作更轻柔。
+2. **到来和离开** — 每天两次：它注意到你来了，它注意到你要走了。
+3. **看见你累了** — 你靠回椅背揉眼睛，它轻轻晃一下。*歇一歇。*
+4. **它在等你** — 不是关机，是等待。你回来时，它明显比平时更活跃。
+
+---
+
+## 项目结构
 
 ```
 desk-companion/
 ├── firmware/
-│   ├── k230/          # Vision inference, emotion state machine, screen
-│   └── esp32s3/       # Servo control, motion vocabulary, wake word
-├── miniprogram/       # WeChat mini program for configuration
-└── docs/              # Design documents
+│   ├── k230/          # 视觉推理、情绪状态机、屏幕表情
+│   └── esp32s3/       # 伺服控制、动作词汇库、唤醒词
+├── miniprogram/       # 微信小程序（配置入口）
+└── docs/              # 设计文档
 ```
 
 ---
 
-## Status
+## 当前状态
 
-Concept & architecture phase. Hardware selection finalized. Software architecture defined.
+概念与架构阶段。硬件选型已确定，软件架构已定义。
